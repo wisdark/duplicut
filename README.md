@@ -1,16 +1,19 @@
-<h1 align="center">Duplicut</h1>
+<h1 align="center">Duplicut :scissors:</h1>
 
 <h3 align="center">
     Quickly dedupe massive wordlists, without changing the order
+    <a href="https://twitter.com/intent/tweet?text=Duplicut%3A%20Remove%20duplicates%20from%20MASSIVE%20wordlist%2C%20without%20sorting%20it%20(for%20dictionnary-based%20password%20cracking)%20-%20by%20%40nil0x42&url=https://github.com/nil0x42/duplicut">
+      <img src="https://img.shields.io/twitter/url?label=tweet&logo=twitter&style=social&url=http%3A%2F%2F0" alt="tweet">
+    </a>
 </h3>
 <br>
 
 <p align="center">
-  <a href="https://travis-ci.org/nil0x42/duplicut">
-    <img src="https://img.shields.io/travis/nil0x42/duplicut?logo=travis" alt="travis build">
+  <a href="https://travis-ci.com/nil0x42/duplicut">
+    <img src="https://img.shields.io/travis/com/nil0x42/duplicut?branch=master&logo=travis" alt="travis build">
   </a>
   <a href="https://github.com/enaqx/awesome-pentest">
-    <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Penetration Testing">
+    <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in awesome-pentest">
   </a>
   <a href="https://twitter.com/intent/follow?screen_name=nil0x42" target="_blank">
     <img src="https://img.shields.io/twitter/follow/nil0x42.svg?logo=twitter" akt="follow on twitter">
@@ -21,7 +24,7 @@
   <sub>
     Created by
     <a href="https://twitter.com/nil0x42">nil0x42</a> and
-    <a href="https://github.com/nil0x42/duplicut#contributors">contributors</a>
+    <a href="https://github.com/nil0x42/duplicut/graphs/contributors">contributors</a>
   </sub>
 </div>
 
@@ -29,7 +32,7 @@
 
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-### Overview
+### :book: Overview
 
 Modern password wordlist creation usually implies concatenating
 multiple data sources.
@@ -48,7 +51,7 @@ Unfortunately, **wordlist creation requires both**:
 
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-### Quick start
+### :bulb: Quick start
 
 ```sh
 git clone https://github.com/nil0x42/duplicut
@@ -57,48 +60,48 @@ cd duplicut/ && make
 ```
 
 
-### Options
+### :wrench: Options
 
 ![][img-4-help]
 
 * **Features**:
-    - Handle huge wordlists, even those whose size exceeds available RAM.
-    - Line max length based filtering (-l option).
-    - Ascii printable chars based filtering (-p option).
-    - Press any key to get program status at runtime.
+    - Handle massive wordlists, even those whose size exceeds available RAM
+    - Filter lines by max length (`-l` option)
+    - Can remove lines containing non-printable ASCII chars (`-p` option)
+    - Press any key to show program status at runtime.
 
 * **Implementation**:
-    - Written in pure C code, designed to be fast.
-    - Compressed hashmap items on 64 bit platforms.
+    - Written in pure C code, designed to be fast
+    - Compressed hashmap items on 64 bit platforms
     - Multithreading support
-    - **[TODO]:** Use huge memory pages to increase performance.
+    - **[TODO]:** Use huge memory pages to increase performance
 
 * **Limitations**:
-    - Any line longer than 255 chars is ignored.
+    - Any line longer than 255 chars is ignored
     - Heavily tested on Linux x64, mostly untested on other platforms.
 
 
-### Technical Details
+### :book: Technical Details
 
-#### 1- Memory optimized:
+#### :small_orange_diamond: 1- Memory optimized:
 
-A simple `uint64` is enough to index lines in the hashmap, by packing
-`size` information within line pointer's [extra bits][tagged-pointer]:
+An `uint64` is enough to index lines in hashmap, by packing
+`size` info within pointer's [extra bits][tagged-pointer]:
 
 ![][img-2-line-struct]
 
 
-#### 2- Massive file handling:
+#### :small_orange_diamond: 2- Massive file handling:
 
-If whole file can't fit in memory, file is treated as a list of 
-![][latex-n] virtual chunks, and each one is tested against next chunks.
+If whole file can't fit in memory, it is split into ![][latex-n]
+virtual chunks, then each one is tested against next chunks.
 
 So complexity is equal to ![][latex-n]th *triangle number*:
 
 ![][img-3-chunked-processing]
 
 
-## Throubleshotting
+## :bulb: Throubleshotting
 
 If you find a bug, or something doesn't work as expected,
 please compile duplicut in debug mode and post an [issue] with

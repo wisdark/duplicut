@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <time.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -62,7 +63,7 @@ pthread_mutex_t         g_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /** Update program status
  */
-void                update_status(enum e_status_update action)
+void            update_status(enum e_status_update action)
 {
     switch (action) {
         case FCOPY_START:
@@ -95,9 +96,9 @@ void                update_status(enum e_status_update action)
     }
 }
 
-void                set_status(enum e_status_set var, size_t val)
-{
 
+void            set_status(enum e_status_set var, size_t val)
+{
     switch (var) {
         case FILE_SIZE:
             DLOG1("CALL set_status(FILE_SIZE, %lu)", val);
@@ -155,16 +156,53 @@ static void     repr_arrival_time(char *buffer, time_t arrival)
     }
 }
 
+
 static void     repr_current_task(char *buffer)
 {
+    int cur_chunk;
+    int cur_ctask;
+
     if (!FCOPY_TERMINATED())
-        strncpy(buffer, "step 1/3: creating output file", BUF_SIZE - 1);
-    else if (!TAGDUP_TERMINATED())
-        snprintf(buffer, BUF_SIZE - 1, "step 2/3: cleaning chunk %d/%d (task %d/%d)",
-                g_status.done_chunks + 1, g_status.total_chunks,
-        g_status.done_ctasks + 1, g_status.total_ctasks);
-    else
-        strncpy(buffer, "step 3/3: removing tagged lines", BUF_SIZE - 1);
+    {
+        if (isatty(STDERR_FILENO))
+            strncpy(buffer,
+                    "\e[36mstep 1/3: \e[1mcreating output file\e[0;36m ...",
+                    BUF_SIZE - 1);
+        else
+            strncpy(buffer,
+                    "step 1/3: creating output file ...",
+                    BUF_SIZE - 1);
+    }
+    else if (!TAGDUP_TERMINATED()) {
+        cur_chunk = g_status.done_chunks;
+        if (cur_chunk < g_status.total_chunks)
+            ++cur_chunk;
+        cur_ctask = g_status.done_ctasks;
+        if (cur_ctask < g_status.total_ctasks)
+            ++cur_ctask;
+        if (isatty(STDERR_FILENO))
+            snprintf(buffer, BUF_SIZE - 1,
+                    "\e[36mstep 2/3: \e[1mcleaning chunk %d/%d "
+                    "\e[0;2;36m(task %d/%d)\e[0;36m ...",
+                    cur_chunk, g_status.total_chunks,
+                    cur_ctask, g_status.total_ctasks);
+        else
+            snprintf(buffer, BUF_SIZE - 1,
+                    "step 2/3: cleaning chunk %d/%d "
+                    "(task %d/%d) ...",
+                    cur_chunk, g_status.total_chunks,
+                    cur_ctask, g_status.total_ctasks);
+    }
+    else {
+        if (isatty(STDERR_FILENO))
+            strncpy(buffer,
+                    "\e[36mstep 3/3: \e[1mremoving tagged lines\e[0;36m ...",
+                    BUF_SIZE - 1);
+        else
+            strncpy(buffer,
+                    "step 3/3: removing tagged lines ...",
+                    BUF_SIZE - 1);
+    }
 }
 
 
@@ -175,14 +213,11 @@ void            display_status(void)
     char        elapsed_time_str[BUF_SIZE] = {0};
     char        arrival_time_str[BUF_SIZE] = {0};
     char        current_task_str[BUF_SIZE] = {0};
-
     time_t      current_time = 0;
     time_t      elapsed_time = 0;
     time_t      arrival_time = 0;
-
     double      progress = 0.0; /* 1.0 == 100% */
     double      remain_time = 0.0;
-
 
     current_time = time(NULL);
     elapsed_time = current_time - START_TIME();
@@ -239,13 +274,24 @@ void            display_status(void)
         arrival_time = current_time + remain_time;
     }
 
-
     repr_elapsed_time(elapsed_time_str, elapsed_time);
     repr_arrival_time(arrival_time_str, arrival_time);
     repr_current_task(current_task_str);
-    fprintf(stderr, "time: %s %5.2f%% (ETA: %s)  %s ...\n",
-            elapsed_time_str,
-            progress * 100.0,
-            arrival_time_str,
-            current_task_str);
+
+    if (isatty(STDERR_FILENO))
+        fprintf(stderr,
+                "\e[0mtime: \e[1m%s \e[1;33m%5.2f%%\e[0m "
+                "(ETA: \e[1m%s\e[0m)  \e[0m%s\e[0m\n",
+                elapsed_time_str,
+                progress * 100.0,
+                arrival_time_str,
+                current_task_str);
+    else
+        fprintf(stderr,
+                "time: %s %5.2f%% "
+                "(ETA: %s)  %s\n",
+                elapsed_time_str,
+                progress * 100.0,
+                arrival_time_str,
+                current_task_str);
 }

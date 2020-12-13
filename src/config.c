@@ -9,6 +9,7 @@
 #include "file.h"
 #include "error.h"
 #include "debug.h"
+#include "bytesize.h"
 
 
 /** Configuration --> g_conf.threads
@@ -27,7 +28,7 @@ static void     config_threads(void)
     if (g_conf.threads == 0)
         g_conf.threads = (unsigned int) max_threads;
     else if (g_conf.threads > (unsigned int) max_threads)
-        error("Cannot use more than %ld threads", max_threads);
+        error("cannot use more than %ld threads", max_threads);
 }
 
 
@@ -111,9 +112,17 @@ void            config(void)
 
     init_memstate(&memstate);
 
+
     config_threads();
     config_hmap_size(g_file, &memstate);
     config_chunk_size(g_file);
+
+    DLOG1("");
+    DLOG1("--------- memstate -----------");
+    DLOG1("memstate.page_size:      %d", memstate.page_size);
+    DLOG1("memstate.mem_available:  %s (%lld)",
+            sizerepr(memstate.mem_available), memstate.mem_available);
+    DLOG1("------------------------------");
 
     DLOG1("");
     DLOG1("---------- g_conf ------------");
@@ -121,8 +130,11 @@ void            config(void)
     DLOG1("g_conf.outfile_name:      %s", g_conf.outfile_name);
     DLOG1("g_conf.threads:           %u", g_conf.threads);
     DLOG1("g_conf.line_max_size:     %u", g_conf.line_max_size);
-    DLOG1("g_conf.hmap_size:         %ld", g_conf.hmap_size);
-    DLOG1("g_conf.chunk_size:        %ld", g_conf.chunk_size);
+    DLOG1("g_conf.hmap_size:         %s (%ld slots of %dbits)",
+            sizerepr(g_conf.hmap_size * sizeof(t_line)),
+            g_conf.hmap_size, sizeof(t_line) * 8);
+    DLOG1("g_conf.chunk_size:        %s (%ld)",
+            sizerepr(g_conf.chunk_size), g_conf.chunk_size);
     DLOG1("g_conf.filter_printable:  %d", g_conf.filter_printable);
     DLOG1("g_conf.memlimit:          %ld", g_conf.memlimit);
     DLOG1("------------------------------");

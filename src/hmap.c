@@ -13,11 +13,11 @@ void        init_hmap(size_t size)
     t_line  *area;
 
     if (g_hmap.ptr != NULL)
-        error("create_hmap(): singleton called twice !");
+        error("init_hmap(): singleton called twice !");
 
     area = (t_line*) malloc(size * sizeof(t_line));
     if (area == NULL)
-        error("cannot malloc() hash map: %s", ERRNO);
+        die("cannot malloc() hash map");
 
     g_hmap.ptr = area;
     g_hmap.size = size;
@@ -56,6 +56,7 @@ void        populate_hmap(t_chunk *chunk)
 
 #if DEBUG >= 2
     size_t      filled = 0;
+    size_t      collisions = 0;
 #endif
 #if DEBUG >= 3
     int         last_percent_filled = 0;
@@ -66,7 +67,7 @@ void        populate_hmap(t_chunk *chunk)
 
     while (get_next_line(&line, chunk))
     {
-        slot = hash(&line) % g_hmap.size;
+        slot = HASH(&line) % g_hmap.size;
         has_slots = (g_hmap.size * 7) / 10;
         while (has_slots--)
         {
@@ -93,10 +94,13 @@ void        populate_hmap(t_chunk *chunk)
                 break;
             }
             /* archaic open addressing collision resolver */
+#if DEBUG >= 2
+            ++collisions;
+#endif
             slot = (slot + 1) % g_hmap.size;
         }
         if (!has_slots)
-            error("populate_hmap(): no space left on hashmap.");
+            error("populate_hmap(): too much slots in use");
         i++;
         if (i == 500000) {
             set_status(TAGDUP_BYTES, (size_t)(chunk->ptr - base_ptr));
@@ -106,7 +110,9 @@ void        populate_hmap(t_chunk *chunk)
     }
     set_status(TAGDUP_BYTES, (size_t)(chunk->ptr - base_ptr));
 #if DEBUG >= 2
-    DLOG2("populate_hmap(): used %ld/%ld slots (%.2f%%)",
-            filled, g_hmap.size, (double)filled / (double)g_hmap.size * 100.0);
+    DLOG2("populate_hmap(): used %ld/%ld slots (%.2f%%) [%ld collisions]",
+            filled, g_hmap.size,
+            (double)filled / (double)g_hmap.size * 100.0,
+            collisions);
 #endif
 }

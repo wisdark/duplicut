@@ -1,6 +1,6 @@
 #pragma once
 
-#define DEFAULT_LINE_MAX_SIZE (14)
+#define DEFAULT_LINE_MAX_SIZE (64)
 
 struct              conf
 {
@@ -11,6 +11,8 @@ struct              conf
     size_t          hmap_size;
     size_t          chunk_size;
     int             filter_printable;
+    int             lowercase_wordlist;
+    int             uppercase_wordlist;
     long            memlimit;
 };
 

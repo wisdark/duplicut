@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "tag_duplicates.h"
+#include "dedupe.h"
 #include "const.h"
 #include "config.h"
 #include "thpool.h"
@@ -26,7 +26,7 @@ static void     tag_subchunks(threadpool thpool, const t_chunk *parent)
     {
         heap_chunk = malloc(sizeof(t_chunk));
         if (heap_chunk == NULL)
-            die("could not malloc() heap_chunk");
+            die("cannot malloc() heap_chunk");
         memcpy(heap_chunk, &chunk, sizeof(t_chunk));
         /* thpool already prints error unless DISABLE_PRINT is defined */
         if (thpool_add_work(thpool, (void*)cleanout_chunk, heap_chunk) != 0)
@@ -77,7 +77,7 @@ static void     tag_subchunks(const t_chunk *parent)
     {
         heap_chunk = malloc(sizeof(t_chunk));
         if (heap_chunk == NULL)
-            die("could not malloc() heap_chunk");
+            die("cannot malloc() heap_chunk");
         memcpy(heap_chunk, &chunk, sizeof(t_chunk));
 
         cleanout_chunk(heap_chunk);

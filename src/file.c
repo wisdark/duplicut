@@ -5,15 +5,17 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <ctype.h>
 #include "file.h"
 #include "const.h"
 #include "status.h"
 #include "error.h"
 #include "debug.h"
+#include "bytesize.h"
+#include "config.h"
 
-# define FILE_ISSET(_f) ((_f)->fd >= 0)
-
-# define BUF_SIZE       (0x20000) /* 128kb */
+#define FILE_ISSET(_f) ((_f)->fd >= 0)
+#define BUF_SIZE       (0x20000) /* 128kb */
 
 
 static struct file  g_infile;
@@ -102,6 +104,24 @@ static void create_tmpfile(void)
 }
 
 
+static void buf_tolower(char *str, ssize_t size)
+{
+    while (size--)
+    {
+        str[size] = tolower(str[size]);
+    }
+}
+
+
+static void buf_toupper(char *str, ssize_t size)
+{
+    while (size--)
+    {
+        str[size] = toupper(str[size]);
+    }
+}
+
+
 /** Copy file from src_fd to dst_fd
  */
 static void copy_file(int dst_fd, int src_fd, bool send_status)
@@ -118,6 +138,11 @@ static void copy_file(int dst_fd, int src_fd, bool send_status)
     {
         char    *dst_ptr = buffer;
         ssize_t nwrite;
+
+        if (g_conf.lowercase_wordlist)
+            buf_tolower(buffer, nread);
+        else if (g_conf.uppercase_wordlist)
+            buf_toupper(buffer, nread);
 
         read_bytes += (size_t)nread;
 
@@ -194,9 +219,9 @@ void        init_file(const char *infile_name, const char *outfile_name)
     DLOG1("g_file->fd:           %d", g_file->fd);
     DLOG1("g_file->name:         %s", g_file->name);
     DLOG1("g_file->addr:         %p", g_file->addr);
-    DLOG1("g_file->info.st_size: %ld", g_file->info.st_size);
+    DLOG1("g_file->info.st_size: %s (%ld)",
+            sizerepr(g_file->info.st_size), g_file->info.st_size);
     DLOG1("------------------------------");
-    DLOG1("");
 }
 
 
